@@ -1,0 +1,82 @@
+# ─────────────────────────────────────────────────────────────
+# FF Party Card v2 — setup
+# ─────────────────────────────────────────────────────────────
+# 1. Replace /config/www/ff-party/ff-party-card.js with the new file.
+# 2. Settings → Dashboards → ⋮ → Resources → edit the card's resource,
+#    bump the version:  /local/ff-party/ff-party-card.js?v=5
+# 3. Hard-refresh the browser (Ctrl+Shift+R) and edit the card.
+#    Everything below can be set in the visual editor; this file is just a reference.
+#
+# Old v1 configs (battery / steps / storage) still work. The editor converts them
+# to hp / mp the first time you change something.
+
+type: custom:ff-party-card
+title: Party
+theme: classic           # classic | ff7 | crimson | forest | midnight | moogle
+footer: top              # top | bottom | hidden
+cursor: true
+gil: sensor.YOUR_SENSOR  # any entity, shown in the time bar
+gil_label: Gil
+gil_decimals: 1
+
+# Look (all optional; unset colors come from the theme preset)
+font: "'Pixelify Sans', monospace"
+scale: 1                 # 0.5 – 2
+color_window_top: "#4a5fd6"
+color_window_bottom: "#141b5e"
+color_border: "#e9ecf5"
+color_text: "#ffffff"
+color_label: "#9fd3ff"
+color_hp: "#3a7bff"
+color_mp: "#2fb36b"
+
+# Advanced (all optional)
+hp_label: HP
+hp_display_max: 9999
+mp_label: MP
+mp_display_max: 999
+hp_note: none            # text under the bar: none | value | percent
+mp_note: value
+low: 30                  # % where HP turns yellow
+critical: 15             # % where HP flashes red
+sleep_start: 22
+sleep_end: 7
+offline_hours: 6         # KO after this long with no updates while unplugged (0 = never)
+home_label: Home
+away_label: Wandering
+builtin_statuses: true   # Regen / Sleep / Silence / Slow
+
+members:
+  - name: Player 1
+    job: Red Mage
+    person: person.PLAYER1
+    image: /local/ff-party/player1.png   # optional
+    hp: sensor.ANDROID_PHONE_battery_level
+    hp_min: 0
+    hp_max: 100                           # sensor value that counts as full
+    mp: sensor.ANDROID_PHONE_internal_storage
+    mp_max: 100
+    battery_state: sensor.ANDROID_PHONE_battery_state    # → Regen
+    dnd: sensor.ANDROID_PHONE_do_not_disturb_sensor      # → Silence / Sleep
+    power_save: binary_sensor.ANDROID_PHONE_power_save   # → Slow
+    statuses:                             # your own status effects
+      - name: Haste
+        entity: sensor.ANDROID_PHONE_detected_activity
+        state: in_vehicle                 # or a list of states
+        color: "#ffd45e"
+      - name: Berserk
+        entity: sensor.ANDROID_PHONE_battery_temperature
+        above: 40                         # numbers: above / below
+    tap_action:
+      action: more-info                   # default; also navigate, call-service, url, none…
+    hold_action:
+      action: navigate
+      navigation_path: /map
+
+  - name: Player 2
+    job: White Mage
+    person: person.PLAYER2
+    hp: sensor.IPHONE_battery_level
+    mp: sensor.IPHONE_storage
+    battery_state: sensor.IPHONE_battery_state   # Low Power Mode → Slow is read from this automatically
+    dnd: binary_sensor.IPHONE_focus
