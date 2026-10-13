@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0
+- New default font: DotGothic16, closer to the SNES-era Final Fantasy menus.
+- Font picker in the editor with six pixel-font presets, each size-matched.
+- `font_url` loads your own font file (.ttf / .woff / .woff2) or a stylesheet.
+- No more smeared fake-bold on pixel fonts.
+
 ## 2.0.0
 - Visual card editor: party settings, theme, advanced options, and a member list you can add to, reorder, and remove from.
 - HP and MP can come from any sensor, with an "empty at" / "full at" range.

@@ -20,7 +20,8 @@ gil_label: Gil
 gil_decimals: 1
 
 # Look (all optional; unset colors come from the theme preset)
-font: "'Pixelify Sans', monospace"
+font: dotgothic          # dotgothic | pixelify | pressstart | silkscreen | vt323 | jersey | any CSS font-family
+font_url: /local/ff-party/myfont.ttf   # optional: your own font file, overrides font
 scale: 1                 # 0.5 – 2
 color_window_top: "#4a5fd6"
 color_window_bottom: "#141b5e"

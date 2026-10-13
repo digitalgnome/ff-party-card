@@ -88,7 +88,8 @@ Everything here can be set in the visual editor. See [`examples/config.yaml`](ex
 | `offline_hours` | `6` | KO if nothing reports this long while unplugged (`0` = never) |
 | `home_label` / `away_label` | `Home` / `Wandering` | Location text |
 | `builtin_statuses` | `true` | Regen / Sleep / Silence / Slow |
-| `font` | Pixelify Sans | CSS font-family |
+| `font` | `dotgothic` | `dotgothic`, `pixelify`, `pressstart`, `silkscreen`, `vt323`, `jersey`, or any CSS font-family you've loaded |
+| `font_url` | — | Your own font file (`.ttf` / `.woff` / `.woff2`) or a `.css` stylesheet; overrides `font` |
 | `scale` | `1` | Overall size, 0.5–2 |
 | `color_window_top`, `color_window_bottom`, `color_border`, `color_text`, `color_label`, `color_hp`, `color_mp` | from theme | Color overrides (hex or `[r, g, b]`) |
 | `tap_action` / `hold_action` | more-info / — | Defaults for all members |
@@ -125,6 +126,12 @@ statuses:
 ```
 
 With no `state`, `above`, or `below`, the status shows whenever the entity is on.
+
+## Fonts
+
+The default is **DotGothic16**, a free pixel font that's close to the SNES-era Final Fantasy menus. Other presets are in the editor's font dropdown.
+
+To use a font file of your own (for example a fan-made FF font you've downloaded), put it in `www/ff-party/` and set **Custom font file URL** to something like `/local/ff-party/myfont.ttf`. Check the font's license before sharing it.
 
 ## Demo
 

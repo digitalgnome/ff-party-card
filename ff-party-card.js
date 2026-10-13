@@ -13,20 +13,66 @@
  *   URL: /local/ff-party/ff-party-card.js?v=5   Type: JavaScript module
  */
 (() => {
-  const VERSION = "2.0.0";
-  const FONT_URL =
-    "https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&display=swap";
+  const VERSION = "2.1.0";
+
+  // Free pixel fonts from Google Fonts. `size` evens out how big each one looks.
+  const FONTS = {
+    dotgothic:  { label: "DotGothic16 (SNES-era JRPG)", family: "'DotGothic16'",    google: "DotGothic16",                size: 1 },
+    pixelify:   { label: "Pixelify Sans (rounded)",     family: "'Pixelify Sans'",  google: "Pixelify+Sans:wght@400;600", size: 1 },
+    pressstart: { label: "Press Start 2P (NES / FF1)",  family: "'Press Start 2P'", google: "Press+Start+2P",             size: 0.78 },
+    silkscreen: { label: "Silkscreen (all caps)",       family: "'Silkscreen'",     google: "Silkscreen:wght@400;700",    size: 0.9 },
+    vt323:      { label: "VT323 (terminal)",            family: "'VT323'",          google: "VT323",                      size: 1.25 },
+    jersey:     { label: "Jersey 10 (tall arcade)",     family: "'Jersey 10'",      google: "Jersey+10",                  size: 1.2 },
+  };
+  const CUSTOM_FAMILY = "FF Party Custom";
 
   // ───────────────────────── helpers ─────────────────────────
 
-  // Fonts declared inside a shadow root are ignored by Chrome, so load it on the page.
-  function ensureFont() {
-    if (document.getElementById("ff-party-card-font")) return;
-    const link = document.createElement("link");
-    link.id = "ff-party-card-font";
-    link.rel = "stylesheet";
-    link.href = FONT_URL;
-    document.head.appendChild(link);
+  function addToHead(id, make) {
+    if (document.getElementById(id)) return;
+    const el = make();
+    el.id = id;
+    document.head.appendChild(el);
+  }
+
+  // Fonts declared inside a shadow root are ignored by Chrome, so load them on the page.
+  // Returns the CSS font-family and size factor to use.
+  function resolveFont(c) {
+    const fallback = ", 'DotGothic16', monospace";
+    if (c.font_url) {
+      const url = String(c.font_url);
+      const id = "ff-party-card-font-custom-" + url.replace(/[^a-z0-9]/gi, "").slice(-40);
+      if (/\.css(\?|$)/i.test(url)) {
+        addToHead(id, () => Object.assign(document.createElement("link"), { rel: "stylesheet", href: url }));
+        // A stylesheet names its own family, so use the font setting as that name.
+        const fam = FONTS[c.font] ? FONTS[c.font].family : c.font;
+        return { family: (fam || `'${CUSTOM_FAMILY}'`) + fallback, size: 1 };
+      }
+      addToHead(id, () => {
+        const s = document.createElement("style");
+        s.textContent = `@font-face { font-family: "${CUSTOM_FAMILY}"; src: url("${url.replace(/["\\]/g, "")}"); font-display: swap; }`;
+        return s;
+      });
+      return { family: `'${CUSTOM_FAMILY}'` + fallback, size: 1 };
+    }
+    const preset = FONTS[c.font];
+    if (preset) {
+      addToHead("ff-party-card-font-" + c.font, () =>
+        Object.assign(document.createElement("link"), {
+          rel: "stylesheet",
+          href: `https://fonts.googleapis.com/css2?family=${preset.google}&display=swap`,
+        })
+      );
+      return { family: preset.family + fallback, size: preset.size };
+    }
+    // Anything else is treated as a CSS font-family you've loaded yourself.
+    addToHead("ff-party-card-font-dotgothic", () =>
+      Object.assign(document.createElement("link"), {
+        rel: "stylesheet",
+        href: `https://fonts.googleapis.com/css2?family=${FONTS.dotgothic.google}&display=swap`,
+      })
+    );
+    return { family: (c.font || FONTS.dotgothic.family) + fallback, size: 1 };
   }
 
   const esc = (s) =>
@@ -123,7 +169,8 @@
     gil_label: "Gil",
     gil_decimals: null,
     gil_unit: true,
-    font: "'Pixelify Sans', 'VT323', monospace",
+    font: "dotgothic", // a preset from FONTS, or any CSS font-family
+    font_url: null,    // optional: your own .ttf/.woff/.woff2 (or a .css stylesheet) to load
     scale: 1,
   };
 
@@ -136,9 +183,14 @@
   const CSS = `
     :host { display: block; }
     ha-card { display: block; background: none; border: none; box-shadow: none; overflow: visible; }
-    .ff { container-type: inline-size; font-family: var(--ff-font); color: var(--ff-text); --edge: var(--ff-border); }
+    .ff {
+      container-type: inline-size; font-family: var(--ff-font); color: var(--ff-text); --edge: var(--ff-border);
+      font-synthesis: none; /* fake bold looks smeared on pixel fonts */
+      -webkit-font-smoothing: none;
+    }
     .inner {
-      font-size: clamp(calc(13px * var(--ff-scale)), calc(3.1cqw * var(--ff-scale)), calc(30px * var(--ff-scale)));
+      --s: calc(var(--ff-scale) * var(--ff-fscale, 1));
+      font-size: clamp(calc(13px * var(--s)), calc(3.1cqw * var(--s)), calc(30px * var(--s)));
       display: flex; flex-direction: column; gap: .5em;
     }
 
@@ -474,14 +526,14 @@
       const sig = JSON.stringify(model);
       if (sig === this._sig) return; // nothing changed, keep animations running smoothly
       this._sig = sig;
-      ensureFont();
-
       const c = this._config;
+      const font = resolveFont(c);
       const t = THEMES[c.theme] || THEMES.classic;
       const col = (key, themeKey) => toColor(c[key]) || t[themeKey];
       const vars = [
-        `--ff-font:${c.font || DEFAULTS.font}`,
+        `--ff-font:${font.family}`,
         `--ff-scale:${num(c.scale, 1)}`,
+        `--ff-fscale:${font.size}`,
         `--ff-win-top:${col("color_window_top", "window_top")}`,
         `--ff-win-bottom:${col("color_window_bottom", "window_bottom")}`,
         `--ff-border:${col("color_border", "border")}`,
@@ -531,7 +583,7 @@
     low: "Low HP warning (%)", critical: "Critical HP (%)", hp_note: "Text under HP bar", mp_note: "Text under MP bar",
     sleep_start: "Sleep starts (hour, 0-23)", sleep_end: "Sleep ends (hour, 0-23)", offline_hours: "KO after offline (hours, 0 = never)",
     home_label: "Home location text", away_label: "Away location text", builtin_statuses: "Built-in statuses (Regen, Sleep, Silence, Slow)",
-    font: "Font (CSS font-family)", scale: "Size",
+    font: "Font", font_url: "Custom font file URL", scale: "Size",
     color_window_top: "Window top", color_window_bottom: "Window bottom", color_border: "Border", color_text: "Text",
     color_label: "Labels", color_hp: "HP bar", color_mp: "MP bar",
     name: "Name", job: "Job / subtitle", person: "Person (location + picture)", image: "Portrait image URL",
@@ -546,6 +598,8 @@
     mp_max: "Sensor value that counts as full (100 for %, 8000 for steps)",
     image: "e.g. /local/ff-party/player1.png. Leave blank to use the person's picture.",
     gil: "Shown in the time bar, e.g. free space on your NAS",
+    font: "Pick a preset, or type the name of a font you've loaded yourself",
+    font_url: "Optional. A .ttf / .woff / .woff2 file, e.g. /local/ff-party/myfont.ttf. Overrides the font above.",
   };
   const noteOptions = [
     { value: "none", label: "Nothing" },
@@ -570,9 +624,11 @@
     ],
     theme: [
       { type: "grid", name: "", schema: [
-        { name: "font", selector: { text: {} } },
+        { name: "font", selector: { select: { mode: "dropdown", custom_value: true,
+          options: Object.entries(FONTS).map(([k, v]) => ({ value: k, label: v.label })) } } },
         { name: "scale", selector: { number: { min: 0.5, max: 2, step: 0.05, mode: "slider" } } },
       ] },
+      { name: "font_url", selector: { text: {} } },
       { type: "grid", name: "", schema: [
         colorField("color_window_top"), colorField("color_window_bottom"),
         colorField("color_border"), colorField("color_text"),
