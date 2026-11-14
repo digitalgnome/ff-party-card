@@ -1,5 +1,7 @@
 # FF Party Card
 
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5)](https://hacs.xyz/docs/faq/custom_repositories/) [![Home Assistant 2023.4+](https://img.shields.io/badge/Home%20Assistant-2023.4%2B-18BCF2?logo=homeassistant&logoColor=white)](https://www.home-assistant.io/) [![JavaScript](https://img.shields.io/badge/made%20with-JavaScript-F7DF1E?logo=javascript&logoColor=white)](ff-party-card.js) [![last commit](https://img.shields.io/github/last-commit/digitalgnome/ff-party-card)](https://github.com/digitalgnome/ff-party-card/commits/main)
+
 A Final Fantasy–style party menu for Home Assistant. Each person in the house is a party member: their phone's battery is their **HP**, another sensor (storage, steps, anything) is their **MP**, and status effects like **Regen**, **Sleep**, and **KO** show what their phone is up to.
 
 ![Classic theme](docs/screenshot-classic.png)
